@@ -1,0 +1,100 @@
+[
+  {
+    "plan_id": "AP-C001-001",
+    "customer_id": "C001",
+    "created_date": "2025-07-25",
+    "created_by": "김영민",
+    "status": "완료",
+    "title": "2차전지 딥다이브 미팅 후속 관리",
+    "actions": [
+      {"action": "이강호 연구원 감사 이메일 발송", "due": "2025-07-26", "status": "완료", "result": "박 팀장 긍정 회신"},
+      {"action": "에코프로 오더 체결 확인 및 피드백", "due": "2025-07-28", "status": "완료", "result": "500만주 전량 체결, 고객 만족"},
+      {"action": "포스코퓨처엠 심층 리포트 별도 발송", "due": "2025-08-05", "status": "완료", "result": "열람 확인, 반응 없음"}
+    ],
+    "outcome": "거래 성사 및 관계 강화. 이강호 연구원 = 박 팀장 핵심 접점으로 확인"
+  },
+  {
+    "plan_id": "AP-C001-002",
+    "customer_id": "C001",
+    "created_date": "2025-10-15",
+    "created_by": "김영민",
+    "status": "진행중",
+    "title": "Q4 관계 강화 및 내년 커버리지 계획",
+    "actions": [
+      {"action": "10월 점심 약속 확정", "due": "2025-10-20", "status": "완료", "result": "10/28 여의도 식사 완료, 우호적 분위기"},
+      {"action": "SK하이닉스 HBM 추가 실사 리포트 공유", "due": "2025-10-30", "status": "완료", "result": "박 팀장 '매우 유익' 피드백"},
+      {"action": "1월 반도체 세미나 기획안 제출", "due": "2025-11-15", "status": "미완료", "result": null},
+      {"action": "해외 NDR 역정보 공유 (미국 투자자 반도체 시각)", "due": "2025-11-30", "status": "미완료", "result": null}
+    ],
+    "outcome": null
+  },
+  {
+    "plan_id": "AP-C001-003",
+    "customer_id": "C001",
+    "created_date": "2025-06-12",
+    "created_by": "김영민",
+    "status": "완료",
+    "title": "기업 탐방 주선 서비스 개선",
+    "actions": [
+      {"action": "삼성전자 IR팀 탐방 일정 우선 확보 후 선제 공유", "due": "2025-06-30", "status": "완료", "result": "7월 초 탐방 주선 성공, 고객 만족"},
+      {"action": "리포트 발간 당일 구두 브리핑 전화 프로세스 수립", "due": "2025-07-01", "status": "완료", "result": "이강호 연구원 리포트 한정 당일 브리핑 실시 중"}
+    ],
+    "outcome": "서비스 불만 해소. 탐방 주선 = 고객 만족도 핵심 요소로 재확인"
+  },
+  {
+    "plan_id": "AP-C002-001",
+    "customer_id": "C002",
+    "created_date": "2025-08-10",
+    "created_by": "김영민",
+    "status": "진행중",
+    "title": "배당주 퀀트 스크리닝 자료 제공",
+    "actions": [
+      {"action": "퀀트팀 협업 - 시가배당률 3%+ & 배당성장 종목 스크리닝", "due": "2025-08-31", "status": "완료", "result": "자료 발송 완료, 이수진 과장 '유용하다' 피드백"},
+      {"action": "주주환원 공시 후 주가 반응 패턴 분석 보고서 작성", "due": "2025-09-30", "status": "완료", "result": "발송 완료, 별도 피드백 없음"},
+      {"action": "ESG 통합 포트폴리오 스크리닝 솔루션 제안", "due": "2025-10-31", "status": "미완료", "result": null}
+    ],
+    "outcome": null
+  },
+  {
+    "plan_id": "AP-C002-002",
+    "customer_id": "C002",
+    "created_date": "2025-11-18",
+    "created_by": "김영민",
+    "status": "신규",
+    "title": "2026 운용계획 대응 - ESG & 밸류업",
+    "actions": [
+      {"action": "당사 ESG 데이터 제공 범위 및 방식 내부 확인", "due": "2025-11-25", "status": "미완료", "result": null},
+      {"action": "밸류업 프로그램 참여 기업 모니터링 정기 리포트 제안서 작성", "due": "2025-11-30", "status": "미완료", "result": null},
+      {"action": "탄소 배출 집약도 데이터 제공 가능 여부 확인 (협력사 포함)", "due": "2025-12-05", "status": "미완료", "result": null}
+    ],
+    "outcome": null
+  },
+  {
+    "plan_id": "AP-C003-001",
+    "customer_id": "C003",
+    "created_date": "2025-10-10",
+    "created_by": "이지연",
+    "status": "진행중",
+    "title": "이강호 연구원-최동현 수석 직접 미팅 주선",
+    "actions": [
+      {"action": "이강호 연구원 일정 확인 및 미팅 주선 타진", "due": "2025-10-20", "status": "완료", "result": "11월 중순 일정 잠정 합의"},
+      {"action": "AI 인프라 수혜주 분석 프리뷰 자료 선발송", "due": "2025-10-31", "status": "완료", "result": "최 수석 '기대된다' 긍정 반응"},
+      {"action": "미팅 전 최 수석 관심사 사전 조사 및 애널리스트 브리핑", "due": "2025-11-10", "status": "미완료", "result": null}
+    ],
+    "outcome": null
+  },
+  {
+    "plan_id": "AP-C003-002",
+    "customer_id": "C003",
+    "created_date": "2025-11-22",
+    "created_by": "이지연",
+    "status": "신규",
+    "title": "ESG 테마펀드 설정 지원",
+    "actions": [
+      {"action": "당사 ESG 팀장-최동현 수석 미팅 주선", "due": "2025-12-10", "status": "미완료", "result": null},
+      {"action": "독자 ESG 스코어링 방법론 소개 자료 준비", "due": "2025-12-05", "status": "미완료", "result": null},
+      {"action": "신재생에너지 소형주 커버리지 추가 계획 공유", "due": "2025-12-15", "result": null}
+    ],
+    "outcome": null
+  }
+]

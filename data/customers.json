@@ -1,0 +1,53 @@
+[
+  {
+    "customer_id": "C001",
+    "company_name": "한국미래자산운용",
+    "company_type": "자산운용사",
+    "aum_billion_krw": 8500,
+    "contact": {
+      "name": "박지훈",
+      "title": "주식운용본부 팀장",
+      "email": "jhpark@kfam.co.kr",
+      "phone": "02-3456-7890"
+    },
+    "investment_mandate": ["국내주식 액티브", "코어위성 전략"],
+    "benchmark": "KOSPI200",
+    "relationship_since": "2019-03-01",
+    "tier": "A",
+    "assigned_salesperson": "김영민"
+  },
+  {
+    "customer_id": "C002",
+    "company_name": "국민연금공단",
+    "company_type": "연기금",
+    "aum_billion_krw": 1050000,
+    "contact": {
+      "name": "이수진",
+      "title": "국내주식실 과장",
+      "email": "sjlee@nps.or.kr",
+      "phone": "063-713-5000"
+    },
+    "investment_mandate": ["국내주식 패시브", "국내주식 액티브", "배당주"],
+    "benchmark": "KOSPI",
+    "relationship_since": "2017-06-15",
+    "tier": "S",
+    "assigned_salesperson": "김영민"
+  },
+  {
+    "customer_id": "C003",
+    "company_name": "삼성액티브자산운용",
+    "company_type": "자산운용사",
+    "aum_billion_krw": 12000,
+    "contact": {
+      "name": "최동현",
+      "title": "리서치팀 수석매니저",
+      "email": "dhchoi@samsungam.co.kr",
+      "phone": "02-2020-3040"
+    },
+    "investment_mandate": ["국내주식 액티브", "테마펀드", "ESG"],
+    "benchmark": "KOSPI200",
+    "relationship_since": "2020-09-01",
+    "tier": "A",
+    "assigned_salesperson": "이지연"
+  }
+]
