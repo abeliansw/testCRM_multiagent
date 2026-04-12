@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ customer.company_name }} - CRM 분석</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; }
+    .navbar-brand { font-weight: 700; }
+
+    /* 고객 정보 헤더 */
+    .customer-header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 2rem 0 1.5rem; }
+    .tier-badge { font-size: .9rem; font-weight: 700; padding: .4em .9em; border-radius: 20px; }
+    .tier-S { background: #ffd700; color: #333; }
+    .tier-A { background: #c0c0c0; color: #333; }
+    .tier-B { background: #cd7f32; color: #fff; }
+    .aum-big { font-size: 2rem; font-weight: 800; color: #7eb8f7; }
+    .info-label { font-size: .75rem; text-transform: uppercase; letter-spacing: .8px; opacity: .6; }
+
+    /* 분석 버튼 */
+    #btnAnalyze { min-width: 160px; }
+
+    /* 로그 터미널 */
+    #logArea {
+      background: #0d1117; color: #58d68d; font-family: 'Consolas', 'Monaco', monospace;
+      font-size: .82rem; line-height: 1.6; border-radius: 8px;
+      padding: 1.2rem; height: 360px; overflow-y: auto;
+      border: 1px solid #30363d; display: none;
+    }
+    #logArea .log-line { margin: 0; white-space: pre-wrap; word-break: break-all; }
+    #logArea .log-line.error { color: #ff7b72; }
+    #logArea .log-line.done  { color: #ffd700; font-weight: bold; }
+
+    /* 결과 영역 */
+    #resultsSection { display: none; }
+    .result-card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .score-circle {
+      width: 90px; height: 90px; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: 800; border: 4px solid;
+    }
+    .score-circle.excellent { border-color: #198754; color: #198754; }
+    .score-circle.good      { border-color: #0d6efd; color: #0d6efd; }
+    .score-circle.fair      { border-color: #ffc107; color: #ffc107; }
+    .score-circle.poor      { border-color: #dc3545; color: #dc3545; }
+    .action-item { border-left: 4px solid #0d6efd; padding: .8rem 1rem; background: #f8f9fa; border-radius: 0 8px 8px 0; margin-bottom: .75rem; }
+    .action-item.short  { border-color: #198754; }
+    .action-item.medium { border-color: #6f42c1; }
+    .action-item.avoid  { border-color: #dc3545; background: #fff5f5; }
+    .urgency-badge { font-size: .7rem; }
+    .sector-bar { height: 8px; border-radius: 4px; }
+    .issue-item { padding: .6rem .9rem; border-radius: 6px; margin-bottom: .5rem; }
+    .issue-major { background: #fff3cd; border-left: 4px solid #ffc107; }
+    .issue-minor { background: #f0f4ff; border-left: 4px solid #6c757d; }
+    .nav-tabs .nav-link.active { font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<!-- 네비게이션 -->
+<nav class="navbar navbar-dark bg-dark px-3">
+  <a href="/" class="navbar-brand text-decoration-none text-white">
+    <i class="bi bi-diagram-3-fill me-2"></i>CRM 멀티에이전트
+  </a>
+  <a href="/" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>대시보드</a>
+</nav>
+
+<!-- 고객 정보 헤더 -->
+<div class="customer-header">
+  <div class="container">
+    <div class="row align-items-center g-3">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <h2 class="mb-0 fw-bold">{{ customer.company_name }}</h2>
+          <span class="tier-badge tier-{{ customer.tier }}">{{ customer.tier }}등급</span>
+        </div>
+        <div class="text-white-50 mb-3">{{ customer.company_type }} · {{ customer.benchmark }} 벤치마크</div>
+        <div class="row g-3">
+          <div class="col-auto">
+            <div class="info-label">담당자</div>
+            <div class="fw-semibold">{{ customer.contact.name }} <span class="opacity-75 small">{{ customer.contact.title }}</span></div>
+          </div>
+          <div class="col-auto">
+            <div class="info-label">담당 영업</div>
+            <div class="fw-semibold">{{ customer.assigned_salesperson }}</div>
+          </div>
+          <div class="col-auto">
+            <div class="info-label">관계 시작</div>
+            <div class="fw-semibold">{{ customer.relationship_since }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <div class="info-label">AUM</div>
+        <div class="aum-big">
+          {% if customer.aum_billion_krw >= 10000 %}
+            {{ "%.0f" | format(customer.aum_billion_krw / 10000) }}조원
+          {% else %}
+            {{ customer.aum_billion_krw }}억원
+          {% endif %}
+        </div>
+        <div class="mt-2">
+          {% for mandate in customer.investment_mandate %}
+          <span class="badge bg-white bg-opacity-10 me-1">{{ mandate }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 메인 컨텐츠 -->
+<div class="container py-4">
+
+  <!-- 분석 실행 카드 -->
+  <div class="card result-card mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+          <h5 class="mb-1 fw-bold"><i class="bi bi-cpu-fill text-primary me-2"></i>AI 파이프라인 분석</h5>
+          <p class="text-muted mb-0 small">Persona → NBA → Activity → QC 순서로 자동 실행됩니다</p>
+        </div>
+        <button id="btnAnalyze" class="btn btn-primary btn-lg" onclick="startAnalysis()">
+          <i class="bi bi-play-circle-fill me-2"></i>분석 시작
+        </button>
+      </div>
+
+      <!-- 로그 터미널 -->
+      <div id="logArea" class="mt-3" aria-live="polite">
+        <p class="log-line" style="color:#7eb8f7;"># CRM 멀티에이전트 파이프라인 시작...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 결과 탭 섹션 -->
+  <div id="resultsSection">
+    <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill text-success me-2"></i>분석 결과</h5>
+
+    <ul class="nav nav-tabs mb-3" id="resultTabs">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabPersona">
+          <i class="bi bi-person-badge me-1"></i>페르소나
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabNBA">
+          <i class="bi bi-lightning-fill me-1"></i>NBA 추천
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabActivity">
+          <i class="bi bi-calendar3 me-1"></i>Activity
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabQC">
+          <i class="bi bi-shield-check me-1"></i>QC 검수
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- 페르소나 탭 -->
+      <div class="tab-pane fade show active" id="tabPersona">
+        <div class="card result-card">
+          <div class="card-body p-4" id="personaContent">
+            <div class="text-muted">분석 결과를 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NBA 탭 -->
+      <div class="tab-pane fade" id="tabNBA">
+        <div class="card result-card">
+          <div class="card-body p-4" id="nbaContent">
+            <div class="text-muted">분석 결과를 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity 탭 -->
+      <div class="tab-pane fade" id="tabActivity">
+        <div class="card result-card">
+          <div class="card-body p-4" id="activityContent">
+            <div class="text-muted">분석 결과를 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QC 탭 -->
+      <div class="tab-pane fade" id="tabQC">
+        <div class="card result-card">
+          <div class="card-body p-4" id="qcContent">
+            <div class="text-muted">분석 결과를 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /resultsSection -->
+
+</div><!-- /container -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const CUSTOMER_ID = "{{ customer_id }}";
+
+// ── 유틸리티 ──────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function scoreClass(score) {
+  if (score >= 90) return 'excellent';
+  if (score >= 75) return 'good';
+  if (score >= 60) return 'fair';
+  return 'poor';
+}
+
+// ── SSE 분석 실행 ─────────────────────────────────────────────
+function startAnalysis() {
+  const btn = document.getElementById('btnAnalyze');
+  const logArea = document.getElementById('logArea');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>분석 중...';
+  logArea.style.display = 'block';
+  logArea.innerHTML = '<p class="log-line" style="color:#7eb8f7;"># 파이프라인 시작: ' + CUSTOMER_ID + '</p>';
+  document.getElementById('resultsSection').style.display = 'none';
+
+  const es = new EventSource('/api/analyze/' + CUSTOMER_ID);
+
+  es.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+
+    if (data.type === 'log') {
+      appendLog(data.text);
+    } else if (data.type === 'done') {
+      appendLog('✅ 분석 완료!', 'done');
+      es.close();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>재분석';
+      loadResults();
+    } else if (data.type === 'error') {
+      appendLog('❌ 오류: ' + data.text, 'error');
+      es.close();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-play-circle-fill me-2"></i>분석 시작';
+    }
+  };
+
+  es.onerror = function() {
+    appendLog('❌ 연결이 끊어졌습니다.', 'error');
+    es.close();
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-play-circle-fill me-2"></i>분석 시작';
+  };
+}
+
+function appendLog(text, cls = '') {
+  const logArea = document.getElementById('logArea');
+  const p = document.createElement('p');
+  p.className = 'log-line' + (cls ? ' ' + cls : '');
+  p.textContent = text;
+  logArea.appendChild(p);
+  logArea.scrollTop = logArea.scrollHeight;
+}
+
+// ── 결과 로드 및 렌더링 ──────────────────────────────────────
+async function loadResults() {
+  try {
+    const res = await fetch('/api/customer/' + CUSTOMER_ID);
+    if (!res.ok) return;
+    const data = await res.json();
+    renderPersona(data.persona);
+    renderNBA(data.nba);
+    renderActivity(data.activities);
+    renderQC(data.qc);
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(e) {
+    console.error('결과 로드 실패:', e);
+  }
+}
+
+// ── 페르소나 렌더링 ───────────────────────────────────────────
+function renderPersona(p) {
+  const el = document.getElementById('personaContent');
+  if (!p) { el.innerHTML = '<div class="text-muted">페르소나 데이터가 없습니다.</div>'; return; }
+
+  const interestMap = { '최고': 5, '높음': 4, '중간': 3, '낮음': 2, '없음': 1 };
+  const interestColor = { '최고': '#dc3545', '높음': '#fd7e14', '중간': '#ffc107', '낮음': '#6c757d', '없음': '#dee2e6' };
+
+  const sectorsHtml = (p.sector_interests || []).map(s => `
+    <div class="mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="fw-semibold">${escHtml(s.sector)}</span>
+        <span class="badge" style="background:${interestColor[s.interest_level] || '#6c757d'}">${escHtml(s.interest_level)}</span>
+      </div>
+      <div class="progress mb-1" style="height:8px;">
+        <div class="progress-bar" style="width:${(interestMap[s.interest_level]||1)*20}%;background:${interestColor[s.interest_level]||'#6c757d'}"></div>
+      </div>
+      <div class="text-muted small">${escHtml(s.rationale)}</div>
+    </div>
+  `).join('');
+
+  const triggersHtml = (p.decision_triggers || []).map(t =>
+    `<li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>${escHtml(t)}</li>`
+  ).join('');
+
+  const avoidHtml = (p.avoid_topics || []).map(a =>
+    `<li class="mb-2"><i class="bi bi-x-circle text-danger me-2"></i>${escHtml(a)}</li>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="row g-4">
+      <div class="col-md-4">
+        <h6 class="fw-bold text-primary mb-3"><i class="bi bi-speedometer2 me-1"></i>관계 점수</h6>
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="score-circle ${scoreClass(p.relationship_score || 0)}">
+            <span>${p.relationship_score ?? '-'}</span>
+            <span style="font-size:.65rem;font-weight:400">/ 100</span>
+          </div>
+          <div class="text-muted small">고객과의 전반적 관계 수준</div>
+        </div>
+        <h6 class="fw-bold text-primary mb-2"><i class="bi bi-chat-dots me-1"></i>커뮤니케이션</h6>
+        ${p.communication_preferences ? `
+          <div class="small">
+            <div class="mb-1"><span class="text-muted">선호 채널:</span> ${escHtml(p.communication_preferences.preferred_channel)}</div>
+            <div class="mb-1"><span class="text-muted">접촉 주기:</span> ${escHtml(p.communication_preferences.contact_cadence)}</div>
+          </div>
+        ` : ''}
+      </div>
+      <div class="col-md-4">
+        <h6 class="fw-bold text-primary mb-3"><i class="bi bi-graph-up me-1"></i>섹터 관심도</h6>
+        ${sectorsHtml || '<div class="text-muted small">데이터 없음</div>'}
+      </div>
+      <div class="col-md-4">
+        <h6 class="fw-bold text-success mb-3"><i class="bi bi-lightning-fill me-1"></i>결정 트리거</h6>
+        <ul class="list-unstyled small">${triggersHtml || '<li class="text-muted">데이터 없음</li>'}</ul>
+        <h6 class="fw-bold text-danger mb-3 mt-3"><i class="bi bi-slash-circle me-1"></i>절대 금지</h6>
+        <ul class="list-unstyled small">${avoidHtml || '<li class="text-muted">데이터 없음</li>'}</ul>
+      </div>
+    </div>
+  `;
+}
+
+// ── NBA 렌더링 ────────────────────────────────────────────────
+function renderNBA(nba) {
+  const el = document.getElementById('nbaContent');
+  if (!nba) { el.innerHTML = '<div class="text-muted">NBA 데이터가 없습니다.</div>'; return; }
+
+  function actionHtml(actions, cls) {
+    return (actions || []).map(a => `
+      <div class="action-item ${cls} mb-3">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+          <strong class="small">${escHtml(a.title)}</strong>
+          ${a.urgency ? `<span class="badge bg-danger urgency-badge ms-2 flex-shrink-0">${escHtml(a.urgency)}</span>` : ''}
+        </div>
+        <div class="text-muted small mb-1">${escHtml(a.rationale)}</div>
+        ${a.success_metric ? `<div class="small"><i class="bi bi-bullseye text-primary me-1"></i>${escHtml(a.success_metric)}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  const avoidHtml = (nba.avoid_actions || []).map(a => `
+    <div class="action-item avoid mb-2">
+      <strong class="small text-danger">${escHtml(a.title)}</strong>
+      <div class="text-muted small mt-1">${escHtml(a.rationale)}</div>
+    </div>
+  `).join('');
+
+  const riskBadge = { high: 'danger', medium: 'warning', low: 'success' };
+
+  el.innerHTML = `
+    <div class="d-flex align-items-center gap-2 mb-4">
+      ${nba.risk_level ? `<span class="badge bg-${riskBadge[nba.risk_level]||'secondary'} fs-6">리스크: ${escHtml(nba.risk_level.toUpperCase())}</span>` : ''}
+    </div>
+    ${nba.summary ? `<div class="alert alert-info small">${escHtml(nba.summary)}</div>` : ''}
+
+    <h6 class="fw-bold text-danger mb-2"><i class="bi bi-alarm me-1"></i>즉시 실행</h6>
+    ${actionHtml(nba.immediate_actions, '') || '<div class="text-muted small">없음</div>'}
+
+    <h6 class="fw-bold text-success mb-2 mt-4"><i class="bi bi-calendar-check me-1"></i>단기 액션</h6>
+    ${actionHtml(nba.short_term_actions, 'short') || '<div class="text-muted small">없음</div>'}
+
+    <h6 class="fw-bold text-purple mb-2 mt-4" style="color:#6f42c1"><i class="bi bi-calendar3 me-1"></i>중기 액션</h6>
+    ${actionHtml(nba.medium_term_actions, 'medium') || '<div class="text-muted small">없음</div>'}
+
+    <h6 class="fw-bold text-danger mb-2 mt-4"><i class="bi bi-x-octagon me-1"></i>금지 행동</h6>
+    ${avoidHtml || '<div class="text-muted small">없음</div>'}
+  `;
+}
+
+// ── Activity 렌더링 ───────────────────────────────────────────
+function renderActivity(activities) {
+  const el = document.getElementById('activityContent');
+  if (!activities || activities.length === 0) {
+    el.innerHTML = '<div class="text-muted">Activity 데이터가 없습니다.</div>';
+    return;
+  }
+
+  const statusColor = { '완료': 'success', '진행중': 'primary', '예정': 'secondary', '지연': 'danger' };
+
+  const rows = activities.map(a => `
+    <tr>
+      <td class="text-muted small">${escHtml(a.activity_id || '')}</td>
+      <td><strong class="small">${escHtml(a.title || a.activity_type || '')}</strong></td>
+      <td class="small">${escHtml(a.due_date || a.scheduled_date || '')}</td>
+      <td><span class="badge bg-${statusColor[a.status]||'secondary'}">${escHtml(a.status || '')}</span></td>
+      <td class="small text-muted">${escHtml(a.linked_nba_action || '')}</td>
+    </tr>
+  `).join('');
+
+  el.innerHTML = `
+    <div class="table-responsive">
+      <table class="table table-hover table-sm align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th><th>제목</th><th>일정</th><th>상태</th><th>연계 NBA</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="text-muted small mt-2">총 ${activities.length}개 Activity</div>
+  `;
+}
+
+// ── QC 렌더링 ─────────────────────────────────────────────────
+function renderQC(qc) {
+  const el = document.getElementById('qcContent');
+  if (!qc) { el.innerHTML = '<div class="text-muted">QC 데이터가 없습니다.</div>'; return; }
+
+  const verdictLabel = {
+    pass_excellent: { text: '우수 통과', cls: 'success' },
+    pass: { text: '통과', cls: 'primary' },
+    pass_with_issues: { text: '조건부 통과', cls: 'warning' },
+    fail: { text: '불합격', cls: 'danger' },
+  };
+  const v = verdictLabel[qc.verdict] || { text: qc.verdict || '-', cls: 'secondary' };
+
+  const issuesHtml = (qc.critical_issues || []).map(i => `
+    <div class="issue-item issue-${i.severity || 'minor'}">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="badge bg-${i.severity === 'major' ? 'warning text-dark' : 'secondary'}">${escHtml(i.severity || '')}</span>
+        <strong class="small">${escHtml(i.description)}</strong>
+      </div>
+      ${i.fix ? `<div class="small text-muted"><i class="bi bi-tools me-1"></i>${escHtml(i.fix)}</div>` : ''}
+    </div>
+  `).join('');
+
+  el.innerHTML = `
+    <div class="row g-4 mb-4">
+      <div class="col-auto">
+        <div class="score-circle ${scoreClass(qc.overall_score || 0)}">
+          <span>${qc.overall_score ?? '-'}</span>
+          <span style="font-size:.65rem;font-weight:400">점</span>
+        </div>
+      </div>
+      <div class="col">
+        <div class="mb-2">
+          <span class="badge bg-${v.cls} fs-6">${v.text}</span>
+        </div>
+        <div class="row g-2 mt-1">
+          ${qc.persona_review ? `<div class="col-auto"><span class="badge bg-light text-dark border">페르소나 ${qc.persona_review.score}점</span></div>` : ''}
+          ${qc.nba_review ? `<div class="col-auto"><span class="badge bg-light text-dark border">NBA ${qc.nba_review.score}점</span></div>` : ''}
+          ${qc.activity_review ? `<div class="col-auto"><span class="badge bg-light text-dark border">Activity ${qc.activity_review.score}점</span></div>` : ''}
+        </div>
+        <div class="text-muted small mt-2">${escHtml(qc.reviewed_at || '')}</div>
+      </div>
+    </div>
+
+    ${qc.overall_summary ? `
+      <div class="alert alert-light border mb-4">
+        <h6 class="fw-bold mb-2"><i class="bi bi-file-text me-1"></i>종합 평가</h6>
+        <div class="small">${escHtml(qc.overall_summary)}</div>
+      </div>
+    ` : ''}
+
+    <h6 class="fw-bold mb-3"><i class="bi bi-exclamation-triangle me-1 text-warning"></i>주요 이슈</h6>
+    ${issuesHtml || '<div class="text-muted small">이슈 없음</div>'}
+  `;
+}
+
+// ── 페이지 로드 시 기존 결과 표시 ───────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  fetch('/api/customer/' + CUSTOMER_ID)
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (data && data.persona) {
+        renderPersona(data.persona);
+        renderNBA(data.nba);
+        renderActivity(data.activities);
+        renderQC(data.qc);
+        document.getElementById('resultsSection').style.display = 'block';
+        document.getElementById('btnAnalyze').innerHTML =
+          '<i class="bi bi-arrow-repeat me-2"></i>재분석';
+      }
+    })
+    .catch(() => {});
+});
+</script>
+</body>
+</html>
